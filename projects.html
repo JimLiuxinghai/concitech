@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>项目说明 — Concitech</title>
+    <meta name="description" content="Concitech 已发布项目的背景、功能范围与使用边界：Blog、Tweet Craft 和 X Video Downloader。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/projects.html" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
+      <nav class="site-nav" aria-label="主导航">
+        <a href="/">首页</a><a aria-current="page" href="/projects.html">项目</a><a href="/about.html">关于</a><a href="/contact.html">联系</a>
+      </nav>
+    </header>
+    <main class="content-shell">
+      <a class="breadcrumb" href="/">← 返回首页</a>
+      <p class="eyebrow"><span class="dot"></span>published work</p>
+      <h1>已发布的项目，和它们要解决的具体问题。</h1>
+      <p class="page-intro">每个项目都从一个重复、笨重或缺少上下文的步骤开始。这里说明它们的用途、实现取向和使用边界，方便你判断它是否适合自己的工作流。</p>
+      <div class="prose">
+        <article class="project-detail">
+          <p class="project-index">01 / Blog</p>
+          <h2>把开发中的问题留下来，而不是只留下结论。</h2>
+          <p>Blog 是 Concitech 的长期写作空间，主要收录中文技术笔记和独立开发中的思考。从浏览器与 Web 基础，到项目维护中遇到的取舍，文章会尽量说明问题的来由、采用的办法和仍然存在的限制。</p>
+          <p>写作的目的不是追逐热点，而是让过去解决过的问题可以被重新理解和验证。文章作者为 JimLiu；如有引用外部资料，会在文章内标出原始来源或链接。</p>
+          <p><a href="https://blog.concitech.org/" target="_blank" rel="noopener noreferrer">访问 Blog ↗</a></p>
+        </article>
+        <article class="project-detail">
+          <p class="project-index">02 / Tweet Craft</p>
+          <h2>把发现信息后的“复制—整理—归档”变成连贯的一步。</h2>
+          <p>Tweet Craft 是一个面向 X 的开源浏览器扩展。它处理的是内容整理中最常见的摩擦：长线程需要逐条复制、不同写作工具需要不同格式、截图需要反复排版，以及有价值的内容难以沉淀到自己的知识库。</p>
+          <p>扩展支持线程识别、HTML / Markdown / 纯文本复制、截图导出，并提供视频工具入口与 Notion 归档能力。代码以 TypeScript 和 WXT 构建；功能设计优先考虑明确的错误反馈、跨浏览器体验和可维护性。</p>
+          <p>Tweet Craft 只应处理用户有权访问、保存或再利用的内容。平台条款、创作者版权和第三方服务规则仍由使用者负责遵守。</p>
+          <p><a href="https://tweet-craft.concitech.org/" target="_blank" rel="noopener noreferrer">访问 Tweet Craft ↗</a> · <a href="https://github.com/JimLiuxinghai/tweet-craft" target="_blank" rel="noopener noreferrer">查看源代码 ↗</a></p>
+        </article>
+        <article class="project-detail">
+          <p class="project-index">03 / X Video Downloader</p>
+          <h2>为已获授权的视频保存需求提供一个清晰入口。</h2>
+          <p>X Video Downloader 是与 Tweet Craft 工作流配合的网页工具入口，用于协助用户保存自己拥有、已获许可或法律允许保存的视频素材。它不是内容的权利声明，也不改变原始创作者或平台拥有的权利。</p>
+          <p>在使用前，请先确认你拥有相应的下载、保存或再发布权限，并遵守所在地法律及 X 的适用规则。对于受版权、隐私或其他限制保护的内容，应先向权利人取得许可。</p>
+          <p><a href="https://xvd.concitech.org/" target="_blank" rel="noopener noreferrer">访问 X Video Downloader ↗</a></p>
+        </article>
+        <h2>维护方式</h2>
+        <p>项目更新以真实需求和可验证的改进为优先。发现问题、功能建议或内容错误时，欢迎通过 <a href="/contact.html">联系页面</a> 反馈。内容修正的原则见 <a href="/editorial-policy.html">编辑与内容原则</a>。</p>
+      </div>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/privacy.html">Privacy</a><a href="/editorial-policy.html">Editorial policy</a></nav></footer>
+  </body>
+</html>
