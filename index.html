@@ -19,7 +19,15 @@
       content="JimLiu 的独立项目站：实用工具、开发取舍与原创技术笔记。"
     />
     <meta property="og:url" content="https://concitech.org/" />
+    <meta property="og:image" content="https://concitech.org/icon.png" />
+    <meta property="og:image:alt" content="Concitech 标志" />
     <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Concitech — 独立项目与开发笔记" />
+    <meta
+      name="twitter:description"
+      content="JimLiu 的独立项目站：实用工具、开发取舍与原创技术笔记。"
+    />
+    <meta name="twitter:image" content="https://concitech.org/icon.png" />
     <link rel="icon" href="/icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,11 +36,29 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954"
-      crossorigin="anonymous"
-    ></script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://concitech.org/#website",
+            "url": "https://concitech.org/",
+            "name": "Concitech",
+            "description": "JimLiu 的独立项目站，发布实用工具、AI 日报与原创技术笔记。",
+            "inLanguage": "zh-Hans",
+            "publisher": { "@id": "https://concitech.org/#person" }
+          },
+          {
+            "@type": "Person",
+            "@id": "https://concitech.org/#person",
+            "name": "JimLiu",
+            "url": "https://concitech.org/about.html",
+            "sameAs": ["https://github.com/JimLiuxinghai"]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <header class="site-header">
