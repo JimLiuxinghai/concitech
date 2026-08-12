@@ -189,8 +189,8 @@ h3 { margin-bottom: 10px; font-size: 1.22rem; letter-spacing: -0.025em; }
 .section-heading-row { display: flex; align-items: end; justify-content: space-between; gap: 24px; max-width: none; }
 .section-heading .eyebrow { margin-bottom: 14px; }
 
-.principle-grid,
-.work-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; margin-top: 29px; }
+.principle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; margin-top: 29px; }
+.work-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 17px; margin-top: 29px; }
 
 .principle,
 .project-card { padding: 24px; border-radius: 16px; }
@@ -237,6 +237,22 @@ h3 { margin-bottom: 10px; font-size: 1.22rem; letter-spacing: -0.025em; }
 .project-detail h2 { margin-bottom: 12px; }
 .project-detail .project-index { margin-bottom: 12px; }
 
+.wechat-promo {
+  width: min(100% - 48px, 1120px);
+  margin: 0 auto 48px;
+}
+
+.wechat-promo__desktop {
+  overflow: hidden;
+  border: 1px solid rgba(0, 108, 76, 0.24);
+  border-radius: 22px;
+  background: #07c160;
+  box-shadow: 0 24px 55px rgba(0, 101, 72, 0.18);
+}
+
+.wechat-promo__desktop img { display: block; width: 100%; height: auto; }
+.wechat-promo__mobile { display: none; }
+
 .site-footer {
   display: flex;
   align-items: center;
@@ -267,6 +283,23 @@ h3 { margin-bottom: 10px; font-size: 1.22rem; letter-spacing: -0.025em; }
   .section-heading-row, .site-footer { align-items: flex-start; flex-direction: column; }
   .identity-card, .principle, .project-card, .note-panel { padding: 22px; }
   .content-shell { padding-block: 22px 55px; }
+  .wechat-promo { width: min(100% - 32px, 1120px); margin-bottom: 34px; }
+  .wechat-promo__desktop { display: none; }
+  .wechat-promo__mobile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 17px;
+    border-radius: 20px;
+    background: #07c160;
+    color: #fff;
+    box-shadow: 0 18px 38px rgba(0, 101, 72, 0.2);
+  }
+  .wechat-promo__qr { flex: 0 0 100px; width: 100px; height: 100px; overflow: hidden; border-radius: 12px; }
+  .wechat-promo__qr img { display: block; width: auto; max-width: none; height: 100px; }
+  .wechat-promo__copy p { margin: 0 0 5px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; opacity: 0.82; }
+  .wechat-promo__copy h2 { margin: 0 0 5px; color: #fff; font-size: 1.08rem; line-height: 1.2; }
+  .wechat-promo__copy span { display: block; font-size: 0.78rem; line-height: 1.55; opacity: 0.9; }
 }
 
 @media (prefers-reduced-motion: reduce) {
