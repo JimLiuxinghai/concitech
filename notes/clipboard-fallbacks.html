@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>复制功能为什么要有三层降级 — Concitech</title>
+    <meta name="description" content="用 Tweet Craft 的实际实现解释浏览器复制权限、HTML 与纯文本格式、三层 Clipboard API 回退、队列和可操作错误提示。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/clipboard-fallbacks" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"Article","headline":"复制功能为什么要有三层降级","description":"用 Tweet Craft 的实现解释浏览器复制权限、格式与 Clipboard API 回退。","datePublished":"2026-08-19","dateModified":"2026-08-19","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/clipboard-fallbacks","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
+      <nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav>
+    </header>
+    <main class="content-shell">
+      <a class="breadcrumb" href="/notes">← 返回开发笔记</a>
+      <header class="article-header">
+        <p class="eyebrow"><span class="dot"></span>browser extension</p>
+        <h1>复制功能为什么要有三层降级</h1>
+        <p class="page-intro">按钮上只有“复制”两个字，背后却要同时处理权限、安全上下文、目标格式和页面 DOM。任何一项都可能失效，所以代码里没有一条包打天下的复制路径。</p>
+        <p class="article-meta">JimLiu · <time datetime="2026-08-19">2026 年 8 月 19 日</time> · 约 7 分钟</p>
+      </header>
+      <article class="prose article-body">
+        <h2>“复制成功”其实有三个不同目标</h2>
+        <p>Tweet Craft 支持把单条推文或线程输出为 HTML、Markdown 和纯文本。三种输出各有麻烦：HTML 要同时写入富文本与纯文本版本，Markdown 要处理链接和特殊字符，纯文本则要在任何编辑器里都保持可读。</p>
+        <p>目标应用也会改变结果。写入文档工具时，HTML 可以保留链接和段落；写入代码仓库时，Markdown 更合适；粘贴到只接受文本的输入框时，浏览器可能主动丢弃富文本。因此，格式化和写入被拆成两层：先生成确定的内容，再选择当前环境允许的写入方式。</p>
+
+        <h2>第一层：优先写入完整的 ClipboardItem</h2>
+        <p>在安全上下文且权限允许时，扩展优先使用 <code>navigator.clipboard.write()</code>。HTML 模式会同时提供 <code>text/html</code> 和 <code>text/plain</code>，由接收应用选择它理解的格式。对支持富文本的编辑器，这是保留结构最完整的路径。</p>
+        <p>这条路径也最容易受环境影响：浏览器可能不支持 <code>ClipboardItem</code>，页面失去焦点后权限会改变，或者企业策略直接禁止富文本剪贴板。能力检测只能说明 API 存在，不能保证一次具体写入一定成功，所以失败后不能只弹出“复制失败”。</p>
+
+        <h2>第二层：退回纯文本 Clipboard API</h2>
+        <p>完整写入失败后，系统会尝试 <code>navigator.clipboard.writeText()</code>。这会损失 HTML 样式，但仍能保住正文、链接和基本段落。对用户来说，一份可粘贴的纯文本通常比什么都没有更有价值。</p>
+        <p>回退时仍使用已经格式化好的文本版本，没有从 HTML 临时删除标签。这样能避免链接文字消失、图片地址混进正文或换行全部挤在一起。每一级能力都有对应输出，API 失败后才能真正退得下去。</p>
+
+        <h2>第三层：兼容旧环境，并把失败说清楚</h2>
+        <p>当现代 Clipboard API 不可用时，最后的兼容路径使用浏览器仍支持的旧式复制机制。它的能力有限，不适合复杂富文本，但可以覆盖某些权限模型不同的环境。三条路径全部失败后，代码会按复制、解析、网络或页面结构分类错误，停止静默重试。</p>
+        <p>Tweet Craft 还用队列串行处理复制任务，避免用户连续点击时多个异步写入互相覆盖。成功提示会说明复制的是单条内容还是线程；失败提示则应告诉用户可以检查页面焦点、浏览器权限或改用纯文本，而不是展示内部异常堆栈。</p>
+
+        <h2>线程复制还要先回答“哪些内容属于同一线程”</h2>
+        <p>写入剪贴板之前，扩展需要从 X 的动态页面中提取作者、正文、时间和媒体。线程识别不能只看“1/5”这样的数字模式，因为很多作者不编号；也不能只看相邻位置，因为推荐内容可能插在中间。当前实现综合自回复关系、编号模式、视觉连续性和连接线等信号，再把识别结果交给格式化层。</p>
+        <p>这个过程最脆弱的部分是第三方页面 DOM。X 调整标签结构、无障碍属性或加载策略后，解析器可能需要更新。扩展不会声称能永久识别所有线程；更实际的做法是限制缓存、只处理可见内容、对新节点分批处理，并在找不到必要字段时给出明确退路。</p>
+
+        <h2>本地处理到哪里结束</h2>
+        <p>核心解析、格式化、截图和复制在浏览器本地完成。只有用户主动配置并使用 Notion 保存或视频相关入口时，才会调用相应外部服务。把这些路径分开很重要：一个本地复制按钮不应该因为附加功能存在，就默认把所有浏览内容发送到服务器。</p>
+        <p>复制和保存功能只改变用户自己的工作流，不改变原作者的版权，也不替代平台条款。能复制下来，不等于有权再发布。</p>
+
+        <h2>可以复查的实现依据</h2>
+        <ul class="evidence-list">
+          <li><a href="https://github.com/JimLiuxinghai/tweet-craft/blob/main/lib/clipboard/clipboard-manager.ts" target="_blank" rel="noopener noreferrer">查看剪贴板管理器实现 ↗</a></li>
+          <li><a href="https://github.com/JimLiuxinghai/tweet-craft/blob/main/lib/parsers/thread-parser.ts" target="_blank" rel="noopener noreferrer">查看线程识别实现 ↗</a></li>
+          <li><a href="https://tweet-craft.concitech.org/docs/notion-setup-tutorial.html" target="_blank" rel="noopener noreferrer">查看可选的 Notion 配置说明 ↗</a></li>
+        </ul>
+        <footer class="article-footer"><p>本文依据 Tweet Craft 1.0.8 仓库实现整理；第三方页面结构和浏览器权限模型变化后，具体行为可能不同。</p><p><a href="/notes/static-site-quality-checks">下一篇：静态站上线前，我实际检查什么 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

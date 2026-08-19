@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>开发笔记 — Concitech 的真实实现与工程取舍</title>
+    <meta name="description" content="Concitech 原创开发笔记：基于真实项目代码，记录 AI 内容发布、浏览器扩展、静态站可靠性中的设计取舍、验证方法与限制。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
+      <nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav>
+    </header>
+    <main class="site-shell">
+      <section aria-labelledby="page-title">
+        <p class="eyebrow"><span class="dot"></span>original field notes</p>
+        <h1 id="page-title">把开发过程写到可以复查。</h1>
+        <p class="page-intro">这里记录 Concitech 项目里已经发生过的具体问题：为什么要设置发布闸门、浏览器能力失效时如何降级，以及一个静态站怎样避免“看起来能打开、实际上难以收录”。每篇都附上实现依据，也会写清楚目前没有解决的部分。</p>
+      </section>
+
+      <section class="section-block" aria-labelledby="latest-title">
+        <div class="section-heading"><p class="eyebrow"><span class="dot"></span>latest notes</p><h2 id="latest-title">首批实践记录</h2></div>
+        <div class="article-grid">
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-19">2026-08-19</time> · 内容系统</p>
+            <h3>我如何让 AI 日报保持可核验</h3>
+            <p>来源链接只是起点。双语内容必须成对、日期不能漂移、生成结果要经过结构与长度检查，发布失败也要保持旧版本可用。</p>
+            <a href="/notes/verifiable-ai-daily">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-19">2026-08-19</time> · 浏览器扩展</p>
+            <h3>复制功能为什么要有三层降级</h3>
+            <p>一次“复制”同时受到权限、安全上下文、浏览器能力和目标格式影响。Tweet Craft 用逐层回退换取可预期的结果。</p>
+            <a href="/notes/clipboard-fallbacks">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-19">2026-08-19</time> · Web 可靠性</p>
+            <h3>静态站上线前，我实际检查什么</h3>
+            <p>从 HTTP 跳转、canonical 和 sitemap 的一致性，到移动端横向溢出与结构化数据，给出一套能重复执行的检查方法。</p>
+            <a href="/notes/static-site-quality-checks">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-block note-panel" aria-labelledby="standard-title">
+        <div><p class="eyebrow"><span class="dot"></span>publishing standard</p><h2 id="standard-title">每篇内容至少回答三个问题。</h2></div>
+        <p>问题发生在哪里？实际采用了什么办法？这个办法在哪些条件下仍会失效？如果不能给出可验证的回答，就先不把它写成一篇文章。</p>
+        <a class="button" href="/editorial-policy">查看内容原则</a>
+      </section>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/about">About</a><a href="/contact">Contact</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

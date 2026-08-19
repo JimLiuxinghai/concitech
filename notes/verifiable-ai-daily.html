@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>我如何让 AI 日报保持可核验 — Concitech</title>
+    <meta name="description" content="拆解 Concitech AI 日报的来源链接、双语配对、日期一致性、内容验证与原子发布流程，以及这套方法仍然存在的限制。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/verifiable-ai-daily" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"Article","headline":"我如何让 AI 日报保持可核验","description":"拆解 Concitech AI 日报的来源链接、双语配对、日期一致性、内容验证与原子发布流程。","datePublished":"2026-08-19","dateModified":"2026-08-19","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/verifiable-ai-daily","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
+      <nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav>
+    </header>
+    <main class="content-shell">
+      <a class="breadcrumb" href="/notes">← 返回开发笔记</a>
+      <header class="article-header">
+        <p class="eyebrow"><span class="dot"></span>content system</p>
+        <h1>我如何让 AI 日报保持可核验</h1>
+        <p class="page-intro">每天生成一份文本很容易。麻烦的是另外几件事：让读者找到原始来源，让中英文版本说的是同一期，以及输入不完整时坚决停下来。</p>
+        <p class="article-meta">JimLiu · <time datetime="2026-08-19">2026 年 8 月 19 日</time> · 约 8 分钟</p>
+      </header>
+      <article class="prose article-body">
+        <h2>先定义什么才算“完成”</h2>
+        <p>Concitech AI 日报会整理模型、产品、研究、开发工具和行业变化。若只把“生成了 Markdown”当作完成，系统很容易发布缺少英文版、日期错位、没有原始来源或正文过短的页面。这样的页面数量再多，也不能帮助读者判断信息是否可靠。</p>
+        <p>因此，发布条件被写成可以由程序判断的约束：文件名必须是同一个日期下的中文和英文成对文件；标题、摘要、作者、分类、封面、发布时间和条目数量必须存在；正文不能短到只剩标题式摘要；每期还必须包含至少三个可追踪的外部来源链接。条件没有全部满足时，构建直接失败。</p>
+        <p class="callout">验证器只能拦住结构问题。内容是否准确，仍然需要编辑判断和读者核验原始来源。</p>
+
+        <h2>来源链接放在对应条目里</h2>
+        <p>每条新闻摘要都会尽量指向发布者原文、官方文档、论文或项目页面。来源链接放在对应条目里，而不是统一堆到页尾；读者可以立刻判断摘要谈的是哪份材料，也能跳过编辑判断，直接查看第一手信息。</p>
+        <p>仅仅“有链接”仍然不够。内容验证器只能检查链接数量和格式，不能保证来源没有更新、撤回或改变表述。因此，编辑摘要会避免把推测写成已经发生的事实，并在原始材料缺少关键细节时保留不确定性。页面提供的是筛选与上下文，不代替原始来源。</p>
+
+        <h2>中英文版本成对发布</h2>
+        <p>日报使用 PT 日期作为编辑归属日，同时记录北京时间发布时间。我实际踩过的坑是把一个仅表示日期的值交给时区转换，结果路由日期、页面显示日期和归档日期对不上。现在日期就是日历字符串，不再经过可能跨日的 UTC 转换。</p>
+        <p>中文和英文内容也必须成对进入内容目录。验证器会比较文件名日期、frontmatter 语言以及分类集合；任何一侧缺失，整期都不会构建。这样做会牺牲一次“先发中文版”的速度，却避免归档中出现只有一半可用的版本，也避免搜索引擎看到互相矛盾的语言页面。</p>
+
+        <h2>失败时保持旧版本可用</h2>
+        <p>发布脚本先检查源文件完整性，再导入临时文件，验证通过后才替换目标内容。构建还会检查封面是否存在、是否含有危险 HTML、每个页面是否只有一个 H1，以及文章结构化数据是否成功输出。任何一步失败，都应该让当天版本停在发布前，而不是把半成品推上生产环境。</p>
+        <p>工作树有未处理改动、远端无法安全快进或双语源文件不完整时，自动流程会停止。我宁可补发一天，也不想让错误页面进入缓存、搜索索引和订阅源，之后再追着多个版本收拾。</p>
+
+        <h2>仍要人工判断的部分</h2>
+        <ul>
+          <li>程序不能替代事实判断；来源本身错误时，结构验证不会自动发现。</li>
+          <li>英文版与中文版保持结构一致，不代表每个术语都只有唯一译法。</li>
+          <li>最低长度和链接数量是防止空页面的底线，不是衡量文章价值的分数。</li>
+          <li>原始网页可能修改或下线，因此重要结论仍需要读者结合发布日期核验。</li>
+        </ul>
+
+        <h2>可以复查的实现依据</h2>
+        <ul class="evidence-list">
+          <li><a href="https://ai.concitech.org/archive/" target="_blank" rel="noopener noreferrer">查看已发布的双语日报归档 ↗</a></li>
+          <li><a href="https://github.com/JimLiuxinghai/concitech-ai-daily" target="_blank" rel="noopener noreferrer">查看站点与验证脚本源代码 ↗</a></li>
+          <li><a href="https://ai.concitech.org/editorial/" target="_blank" rel="noopener noreferrer">阅读 AI 日报编辑标准 ↗</a></li>
+        </ul>
+        <footer class="article-footer"><p>本文依据 2026-08-19 的公开仓库实现整理。流程发生实质变化时会更新本文日期。</p><p><a href="/notes/clipboard-fallbacks">下一篇：复制功能为什么要有三层降级 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

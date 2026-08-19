@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>静态站上线前，我实际检查什么 — Concitech</title>
+    <meta name="description" content="一套可重复执行的静态站质量检查：HTTP 状态、canonical、重定向、sitemap、内部链接、结构化数据、移动端布局与广告页面边界。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/static-site-quality-checks" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"Article","headline":"静态站上线前，我实际检查什么","description":"一套可重复执行的静态站抓取、语义、移动端与广告边界检查。","datePublished":"2026-08-19","dateModified":"2026-08-19","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/static-site-quality-checks","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
+      <nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav>
+    </header>
+    <main class="content-shell">
+      <a class="breadcrumb" href="/notes">← 返回开发笔记</a>
+      <header class="article-header">
+        <p class="eyebrow"><span class="dot"></span>web reliability</p>
+        <h1>静态站上线前，我实际检查什么</h1>
+        <p class="page-intro">静态 HTML 很少在运行时崩溃，但这不代表它天然可靠。页面地址、首选网址、站点地图和内部导航只要各说各话，用户仍能打开页面，搜索引擎却会收到冲突信号。</p>
+        <p class="article-meta">JimLiu · <time datetime="2026-08-19">2026 年 8 月 19 日</time> · 约 6 分钟</p>
+      </header>
+      <article class="prose article-body">
+        <h2>先请求线上地址</h2>
+        <p>这次检查主站时，我发现本地文件叫 <code>projects.html</code>，线上首选地址却是 <code>/projects</code>。Concitech 托管平台会对带扩展名的地址返回 308。页面 canonical 和 sitemap 仍写旧地址时，抓取器每次先遇到跳转，随后页面又声明另一个版本是首选，信号就不一致。</p>
+        <p>所以检查从真实 HTTP 响应开始：关键 URL 是否直接返回 200，是否发生预期外跳转，最终内容类型是否正确，安全头和缓存策略是否合理。只有确定线上实际地址，才有资格填写 canonical。</p>
+
+        <h2>一个页面只能有一个明确身份</h2>
+        <p>每个可索引页面需要唯一 title、与正文一致的 description、一个 H1 和指向最终 200 地址的 canonical。文章还会输出 <code>Article</code> 结构化数据，并让标题、作者、发布日期、修改日期和主页面地址与可见内容相符。</p>
+        <p>结构化数据只负责减少机器理解时的歧义，救不了薄弱内容。用户应当能在当前页面获得完整答案，不必再点击另一个域名才能知道项目做了什么。</p>
+
+        <h2>sitemap、robots 与内部链接必须互相认识</h2>
+        <p><code>robots.txt</code> 告诉抓取器哪些路径允许访问，并声明 sitemap 位置；sitemap 列出希望被发现的规范 URL；内部导航则说明页面之间的实际关系。三者任何一个遗漏，都不一定立即造成错误，但会让新页面更难被稳定发现。</p>
+        <p>自动检查会把所有站内链接映射回真实文件，确认没有 404；解析 sitemap 的每个 <code>&lt;loc&gt;</code>，确认它与页面 canonical 一致；同时拒绝在这些位置继续出现 <code>.html</code> 旧地址。这样一次新增页面不会只改导航、忘记站点地图。</p>
+
+        <h2>内容检查不能只计算字数</h2>
+        <p>最小正文长度可以拦截空模板，却不能证明内容有用。更有效的问题是：页面是否解决一个清楚的问题？关键判断是否给出依据？限制是否被主动说明？读者能否继续核验？如果一页只是把其他网站的标题和链接排成卡片，即使字数很多，仍然可能只是目录。</p>
+        <p>所以这次主站仍保留项目入口，同时补上能在主域独立阅读的实践文章。内容取自仓库里已经做过的日期验证、剪贴板降级和发布检查，没有为了审核批量生成泛化教程。</p>
+
+        <h2>广告代码只应该出现在有内容价值的页面</h2>
+        <p>站点验证通常需要首页能够加载 AdSense 脚本，但这不等于每个页面都适合展示自动广告。联系、隐私、编辑原则和纯目录页的主要任务是建立信任或提供导航；如果在这些页面加载自动广告，广告可能比正文更显眼。</p>
+        <p>因此主站把广告 loader 限制在首页、笔记索引和原创文章页。技术上还应在 AdSense 后台设置不适合自动广告的页面排除，并为受监管地区配置 Google 认可的同意管理方案。代码边界与后台配置需要同时成立。</p>
+
+        <h2>最后用真实浏览器检查人能否顺利阅读</h2>
+        <p>HTML 校验通过后，桌面和移动视口都要实际打开。检查导航是否换行但仍可点击，正文是否出现横向滚动，焦点样式是否可见，图片是否带尺寸和替代文字，控制台是否报错。移动端尤其要看长标题、代码片段和外部链接会不会撑破容器。</p>
+        <p>最终验收还会从首页点击到笔记索引，再进入文章并返回；这验证的不只是单个 URL，而是用户能否理解站点结构。一个可访问、可返回、无死链的阅读路径，比堆砌更多孤立页面更重要。</p>
+
+        <h2>可以重复执行的顺序</h2>
+        <ol class="evidence-list">
+          <li>请求线上 URL，记录最终地址、状态码和内容类型。</li>
+          <li>核对 title、description、H1、canonical 与结构化数据。</li>
+          <li>检查内部链接、robots、sitemap 和 ads.txt。</li>
+          <li>在桌面与移动视口完成导航和溢出检查。</li>
+          <li>部署后重新请求同一组 URL，确认生产结果与本地一致。</li>
+        </ol>
+        <footer class="article-footer"><p>这份清单来自 Concitech 本轮真实修复，适合小型静态站；大型动态站还需要日志、模板覆盖率和持续抓取监控。</p><p><a href="/notes/verifiable-ai-daily">回到第一篇：AI 日报如何保持可核验 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

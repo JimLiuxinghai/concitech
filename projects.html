@@ -7,23 +7,18 @@
     <meta name="description" content="Concitech 已发布项目的背景、功能范围与使用边界：Concitech AI 日报、Blog、Tweet Craft 和 X Video Downloader。" />
     <meta name="author" content="JimLiu" />
     <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://concitech.org/projects.html" />
+    <link rel="canonical" href="https://concitech.org/projects" />
     <link rel="icon" href="/icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="/styles.css" />
-    <script
-      async
-      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954"
-      crossorigin="anonymous"
-    ></script>
   </head>
   <body>
     <header class="site-header">
       <a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a>
       <nav class="site-nav" aria-label="主导航">
-        <a href="/">首页</a><a aria-current="page" href="/projects.html">项目</a><a href="/about.html">关于</a><a href="/contact.html">联系</a>
+        <a href="/">首页</a><a href="/notes">笔记</a><a aria-current="page" href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a>
       </nav>
     </header>
     <main class="content-shell">
@@ -45,6 +40,7 @@
           <p>Tweet Craft 是一个面向 X 的开源浏览器扩展。它处理的是内容整理中最常见的摩擦：长线程需要逐条复制、不同写作工具需要不同格式、截图需要反复排版，以及有价值的内容难以沉淀到自己的知识库。</p>
           <p>扩展支持线程识别、HTML / Markdown / 纯文本复制、截图导出，并提供视频工具入口与 Notion 归档能力。代码以 TypeScript 和 WXT 构建；功能设计优先考虑明确的错误反馈、跨浏览器体验和可维护性。</p>
           <p>Tweet Craft 只应处理用户有权访问、保存或再利用的内容。平台条款、创作者版权和第三方服务规则仍由使用者负责遵守。</p>
+          <p><a href="/notes/clipboard-fallbacks">阅读案例：复制功能为什么要有三层降级 →</a></p>
           <p><a href="https://tweet-craft.concitech.org/" target="_blank" rel="noopener noreferrer">访问 Tweet Craft ↗</a> · <a href="https://github.com/JimLiuxinghai/tweet-craft" target="_blank" rel="noopener noreferrer">查看源代码 ↗</a></p>
         </article>
         <article class="project-detail">
@@ -59,13 +55,14 @@
           <h2>从信息噪声里，筛出每天真正值得关注的 AI 变化。</h2>
           <p>Concitech AI 日报每天整理模型发布、AI 产品、研究进展、开发工具和行业变化，并提供中英双语编辑摘要。它不追求把所有消息塞给读者，而是优先保留有明确来源、能影响真实工作流的进展。</p>
           <p>每期内容标明原始信息来源，方便继续阅读和核验。日报适合希望快速掌握 AI 动态，又不想在多个信息流里反复筛选的开发者与创作者。</p>
+          <p><a href="/notes/verifiable-ai-daily">阅读案例：AI 日报如何保持可核验 →</a></p>
           <p><a href="https://ai.concitech.org/" target="_blank" rel="noopener noreferrer">访问 Concitech AI 日报 ↗</a></p>
         </article>
         <h2>维护方式</h2>
-        <p>项目更新以真实需求和可验证的改进为优先。发现问题、功能建议或内容错误时，欢迎通过 <a href="/contact.html">联系页面</a> 反馈。内容修正的原则见 <a href="/editorial-policy.html">编辑与内容原则</a>。</p>
+        <p>项目更新以真实需求和可验证的改进为优先。发现问题、功能建议或内容错误时，欢迎通过 <a href="/contact">联系页面</a> 反馈。内容修正的原则见 <a href="/editorial-policy">编辑与内容原则</a>。</p>
       </div>
     </main>
-    <section class="wechat-promo" aria-labelledby="wechat-follow-title"><div class="wechat-promo__desktop"><img src="/wechat-smart-concise.webp" width="2368" height="624" loading="lazy" decoding="async" alt="微信搜一搜：智简 Smart&amp;Concise 公众号二维码" /></div><div class="wechat-promo__mobile"><span class="wechat-promo__qr" aria-hidden="true"><img src="/wechat-smart-concise.webp" width="2368" height="624" loading="lazy" decoding="async" alt="" /></span><div class="wechat-promo__copy"><p>关注公众号</p><h2 id="wechat-follow-title">智简 Smart&amp;Concise</h2><span>微信搜一搜，获取独立开发与 AI 实践更新。</span></div></div></section>
-    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/privacy.html">Privacy</a><a href="/editorial-policy.html">Editorial policy</a></nav></footer>
+    <section class="wechat-promo" aria-labelledby="wechat-follow-title"><div class="wechat-promo__desktop"><img src="/wechat-smart-concise.webp" width="2368" height="624" decoding="async" alt="微信搜一搜：智简 Smart&amp;Concise 公众号二维码" /></div><div class="wechat-promo__mobile"><span class="wechat-promo__qr" aria-hidden="true"><img src="/wechat-smart-concise.webp" width="2368" height="624" decoding="async" alt="" /></span><div class="wechat-promo__copy"><p>关注公众号</p><h2 id="wechat-follow-title">智简 Smart&amp;Concise</h2><span>微信搜一搜，获取独立开发与 AI 实践更新。</span></div></div></section>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
   </body>
 </html>
