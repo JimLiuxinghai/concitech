@@ -19,6 +19,7 @@ const failures = [];
 const titles = new Map();
 const canonicalUrls = new Set();
 const pageByRoute = new Map(pages.map((page) => [page.route, page]));
+const clarityProjectId = 'y59kdxo6uz';
 
 function fail(file, message) {
   failures.push(`${file}: ${message}`);
@@ -58,6 +59,8 @@ for (const page of pages) {
   const h1Count = (html.match(/<h1(?:\s|>)/gi) ?? []).length;
   const textLength = visibleText(html).length;
   const hasAds = html.includes('ca-pub-5950061234063954');
+  const clarityProjectIdCount = (html.match(new RegExp(clarityProjectId, 'g')) ?? []).length;
+  const clarityLoaderCount = (html.match(/https:\/\/www\.clarity\.ms\/tag\//g) ?? []).length;
 
   if (!title) fail(page.file, 'title is missing');
   else if (titles.has(title)) fail(page.file, `title duplicates ${titles.get(title)}`);
@@ -68,6 +71,7 @@ for (const page of pages) {
   if (h1Count !== 1) fail(page.file, `expected one H1, found ${h1Count}`);
   if (textLength < page.minimumText) fail(page.file, `visible text is ${textLength} characters; expected at least ${page.minimumText}`);
   if (hasAds !== Boolean(page.ads)) fail(page.file, page.ads ? 'AdSense loader is missing' : 'AdSense loader is not allowed on this page');
+  if (clarityProjectIdCount !== 1 || clarityLoaderCount !== 1) fail(page.file, 'Clarity loader must appear exactly once with the expected project ID');
 
   if (/href="\/[^"]*\.html(?:[?#"])/i.test(html)) fail(page.file, 'internal links must use canonical extensionless routes');
   if (/rel="canonical"[^>]*\.html/i.test(html)) fail(page.file, 'canonical must not contain .html');
