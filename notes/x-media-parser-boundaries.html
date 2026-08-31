@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>X 媒体解析为什么不能只取第一个视频地址 — Concitech</title>
+    <meta name="description" content="基于 X Video Downloader 实际解析代码，说明长文、线程、视频码率、卡片媒体和大整数 ID 的处理边界。" />
+    <meta name="author" content="JimLiu" /><meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/x-media-parser-boundaries" /><link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" /><link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","y59kdxo6uz");</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"X 媒体解析为什么不能只取第一个视频地址","description":"X 帖子媒体解析中的数据结构、码率、线程和标识符边界。","datePublished":"2026-08-31","dateModified":"2026-08-31","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/x-media-parser-boundaries","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}</script>
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a><nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav></header>
+    <main class="content-shell"><a class="breadcrumb" href="/notes">← 返回开发笔记</a><header class="article-header"><p class="eyebrow"><span class="dot"></span>media parsing</p><h1>X 媒体解析为什么不能只取第一个视频地址</h1><p class="page-intro">一条帖子在界面上只有一个“播放”按钮，接口返回的数据却可能同时包含普通媒体、卡片媒体、多个码率和线程中的后续帖子。解析器的工作不是找一个 URL，而是把这些分支整理成稳定的数据模型。</p><p class="article-meta">JimLiu · <time datetime="2026-08-31">2026 年 8 月 31 日</time> · 约 8 分钟</p></header>
+      <article class="prose article-body">
+        <h2>入口数据并不保证只有一种形状</h2>
+        <p>X 的会话结果把时间线指令放在 <code>threaded_conversation_with_injections_v2.instructions</code> 中。有效 entries 不一定出现在第一条指令，所以解析器先遍历 instructions，找到真正包含 entries 的对象。主帖通常是 <code>TimelineTimelineItem</code>，线程回复则可能位于 <code>TimelineTimelineModule</code> 的 items 中。</p>
+        <p>同一个 tweet 对象也可能被另一层 <code>tweet</code> 包裹。代码因此在读取用户、legacy 字段和 card 时都保留两个候选路径。这不是漂亮的抽象，却能把上游接口小幅变化限制在解析层，不让页面组件理解原始结构。</p>
+
+        <h2>文本、链接和长文要分别处理</h2>
+        <p>正文优先读取 <code>note_tweet</code> 的长文结果，缺失时才回退到 <code>legacy.full_text</code>。t.co 短链不能直接展示：解析器把文本中的链接与 entities 对照，找到对应的 <code>expanded_url</code> 后替换；无法匹配的短链会移除，避免把内部跳转地址留给用户。最后再把常见的 <code>&amp;amp;</code> 还原。</p>
+        <p>这套处理仍有明确限制。它不是通用 HTML 解码器，也不会猜测已经失效的短链目标；输入中出现异常组合 URL 时，正则仍可能需要更新。把失败表现定义为“保留可读正文而不是让整条解析崩溃”，比追求一次覆盖所有边界更实际。</p>
+
+        <h2>视频 variants 必须按内容类型和码率筛选</h2>
+        <p>一个视频的 <code>variants</code> 可能包含 HLS 播放列表和多个 MP4 文件。直接取数组第一项既不保证能下载，也不保证清晰度。当前实现先过滤 <code>content_type === video/mp4</code>，再按 bitrate 从高到低排序，选择最高码率的可下载版本。没有 MP4 时不伪造结果。</p>
+        <p>普通图片和视频位于 <code>extended_entities.media</code>；部分播放器卡片则把媒体引用藏在 <code>card.legacy.binding_values</code> 的 JSON 字符串里。解析器需要先取出组件数据中的 media ID，再回到 media_entities 找 variants。两条路径最终输出相同的 <code>medias</code> 数组，页面不必知道媒体来自普通附件还是卡片。</p>
+
+        <h2>帖子 ID 不能当普通 Number</h2>
+        <p>社交平台 ID 的位数可能超过 JavaScript 安全整数上限。如果先转换为 Number，再序列化或拼 URL，末位就可能悄悄变化。代码从 <code>id_str</code> 创建 BigInt，并在内部模型中保持精确值。跨 JSON 边界时则必须显式转换为字符串，因为原生 JSON 不支持 BigInt。</p>
+        <p>这个细节很难通过肉眼发现：页面能打开、绝大多数 ID 也看似正常，只有足够大的值才出错。验证时需要使用已知长 ID，比较输入字符串、解析模型和最终下载请求中的每一位，而不能只断言字段存在。</p>
+
+        <h2>线程只收录作者自己的连续内容</h2>
+        <p><code>TimelineTimelineModule</code> 同时可能包含原作者续帖和其他人的回复。当前实现只接受 <code>tweetDisplayType === SelfThread</code> 的条目，避免把讨论区所有媒体混进一个下载结果。每条续帖独立解析文字和媒体，再按时间线顺序加入结果。</p>
+        <p>这也意味着解析器不会自动下载所有引用帖或回复中的附件。这个边界既减少版权和意外批量下载风险，也让“保存一个线程”保持可预测。工具只应用于用户有权保存的内容；解析到公开媒体地址不等于获得重新发布许可。</p>
+
+        <h2>稳定输出比追随原始字段更重要</h2>
+        <p>页面真正需要的是帖子 ID、可读文本和媒体列表。把上游结构压缩成这三个稳定概念后，接口变化只会影响解析器。解析失败时返回空数组并记录错误，调用方可以显示失败状态，而不是拿到一半结构继续运行。</p>
+        <p>下一步更值得补的是基于真实样本的固定测试：普通图片、单视频、多码率、卡片视频、长文和 SelfThread 各保留一份脱敏 fixture。这样上游字段变化会在部署前显现，而不是等用户发现下载按钮消失。</p>
+        <footer class="article-footer"><p>本文依据 X Video Downloader 当前的 <code>src/lib/parser.js</code> 实现撰写，不包含私有凭据或用户数据。</p><p><a href="/notes/browser-screenshot-csp">下一篇：浏览器截图为什么要排除脚本节点 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

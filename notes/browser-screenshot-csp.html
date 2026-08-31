@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>浏览器截图为什么要主动排除脚本节点 — Concitech</title>
+    <meta name="description" content="以 Tweet Craft 的页面截图实现为例，解释第三方页面、严格 CSP、脚本克隆和扩展按钮污染之间的边界。" />
+    <meta name="author" content="JimLiu" /><meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/browser-screenshot-csp" /><link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" /><link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","y59kdxo6uz");</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"浏览器截图为什么要主动排除脚本节点","description":"第三方页面截图中的 CSP、安全节点过滤和扩展 UI 隔离。","datePublished":"2026-08-31","dateModified":"2026-08-31","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/browser-screenshot-csp","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}</script>
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a><nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav></header>
+    <main class="content-shell"><a class="breadcrumb" href="/notes">← 返回开发笔记</a><header class="article-header"><p class="eyebrow"><span class="dot"></span>browser extension</p><h1>浏览器截图为什么要主动排除脚本节点</h1><p class="page-intro">把一个 DOM 节点画成图片，看起来只是“复制样式再渲染”。但浏览器扩展运行在第三方页面里，克隆范围一旦包含脚本、模板或扩展自己的按钮，就会同时遇到 CSP 报错和画面污染。</p><p class="article-meta">JimLiu · <time datetime="2026-08-31">2026 年 8 月 31 日</time> · 约 7 分钟</p></header>
+      <article class="prose article-body">
+        <h2>截图对象来自不受扩展控制的页面</h2>
+        <p>Tweet Craft 在 X 页面中识别帖子节点，然后把目标 DOM 交给截图库。目标节点不仅包含正文、头像和媒体，也可能嵌入 <code>script</code>、<code>noscript</code>、<code>template</code>，以及扩展注入的操作按钮。页面还可能设置严格 Content Security Policy，禁止内联脚本或未知资源。</p>
+        <p>如果截图库为了还原节点而克隆所有后代，浏览器可能把克隆脚本视为新的执行或资源加载尝试。即使最终图片不需要脚本，控制台仍会产生 CSP 拒绝，极端情况下整个截图 Promise 失败。</p>
+
+        <h2>排除列表和运行时过滤要同时存在</h2>
+        <p>当前公共选项把 <code>script</code>、<code>noscript</code>、<code>template</code> 和 <code>.tsc-action-button</code> 放进静态 exclude 列表。同时提供 filter 回调，再次检查节点 tagName 和扩展按钮 class。两层看起来重复，但它们服务于不同阶段：库原生 exclude 能尽早减少遍历，filter 则在库版本或节点匹配行为变化时提供最后一道边界。</p>
+        <p>危险标签保存在 Set 中，让每次判断是明确的成员查询。过滤器只返回布尔值，不修改页面节点，也不读取脚本内容。截图过程因此保持只读，不会为了“修好页面”去删除用户正在浏览的 DOM。</p>
+
+        <h2>为什么扩展自己的按钮也必须消失</h2>
+        <p>内容脚本会在帖子操作区加入复制、截图或归档按钮。这些按钮帮助用户触发功能，却不是原帖内容。如果截图包含它们，结果会混入产品 UI，既影响排版，也可能让读者误以为按钮来自 X 页面。</p>
+        <p>使用稳定的 <code>tsc-action-button</code> class 比按图标、文本或位置判断可靠。按钮语言会变化，图标可能更新，页面布局也会调整；由扩展自己维护的语义 class 才是最稳定的隔离契约。</p>
+
+        <h2>过滤不能解决所有截图问题</h2>
+        <p>外部图片仍可能受 CORS、临时 URL 或加载时机影响；Web 字体可能尚未完成；视频当前帧和渐变背景也需要单独处理。过滤脚本节点只解决“哪些内容不该进入克隆”，不能保证所有资源都可被画布读取。</p>
+        <p>因此调用方还需要等待必要资源、设置超时，并在富截图失败时给出可理解的错误。不能把空白图片当成功，也不应无限重试第三方资源。对于无法读取的媒体，保留文本和链接通常比生成一个看似完整但缺图的结果更诚实。</p>
+
+        <h2>验证要覆盖敌对页面条件</h2>
+        <p>普通开发页面往往没有严格 CSP，测试很容易全部通过。更有效的样本需要包含内联脚本、模板节点、跨域图片、加载失败字体和扩展注入按钮。断言不仅看“是否生成图片”，还要确认输出不含操作按钮、控制台没有新增 CSP 错误、原页面 DOM 没有被修改。</p>
+        <p>移动端和深色模式也应单独检查，因为目标节点的计算样式会随视口和主题变化。截图工具的可靠性不在于一次生成多漂亮，而在于面对不能控制的页面时，知道哪些内容可以复制、哪些必须舍弃，以及失败后如何回到用户可继续操作的状态。</p>
+
+        <h2>共享安全选项避免实现漂移</h2>
+        <p>Tweet Craft 同时有单帖、线程和增强截图路径。如果每条路径各写一套过滤条件，新增一个危险节点时很容易漏改。现在的 <code>createSnapdomSafeOptions</code> 是共享入口，让所有截图服务使用同一套 CSP 防护和 UI 排除规则。</p>
+        <p>这类小函数的价值不是减少几行代码，而是把安全边界变成可审阅的单一事实来源。未来截图库升级时，只需针对这一入口验证行为，不需要在多个服务里猜测差异。</p>
+        <footer class="article-footer"><p>本文依据 Tweet Craft 的 <code>snapdom-safe-options.ts</code> 与实际截图路径撰写。</p><p><a href="/notes/thin-content-indexing">下一篇：旧文章为什么保留 URL 但退出索引 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

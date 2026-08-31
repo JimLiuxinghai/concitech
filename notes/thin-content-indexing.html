@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>旧文章为什么保留 URL，但退出搜索索引 — Concitech</title>
+    <meta name="description" content="一次旧博客内容治理记录：如何识别空页和极短记录，使用 noindex、follow 保留访问路径并减少薄内容信号。" />
+    <meta name="author" content="JimLiu" /><meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/thin-content-indexing" /><link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" /><link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","y59kdxo6uz");</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"旧文章为什么保留 URL，但退出搜索索引","description":"用 noindex、follow 治理旧博客空页与极短记录的实践。","datePublished":"2026-08-31","dateModified":"2026-08-31","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/thin-content-indexing","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}</script>
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a><nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav></header>
+    <main class="content-shell"><a class="breadcrumb" href="/notes">← 返回开发笔记</a><header class="article-header"><p class="eyebrow"><span class="dot"></span>content maintenance</p><h1>旧文章为什么保留 URL，但退出搜索索引</h1><p class="page-intro">十年前的个人博客会积累很多当时有用、今天却只剩标题或几行命令的记录。全部删除会打断旧链接，全部保留索引又会让搜索引擎看到大量不完整页面。</p><p class="article-meta">JimLiu · <time datetime="2026-08-31">2026 年 8 月 31 日</time> · 约 7 分钟</p></header>
+      <article class="prose article-body">
+        <h2>先区分“旧”和“薄”</h2>
+        <p>文章发布年份久并不等于低价值。一个 2016 年的技术问题如果仍有完整背景、操作步骤和限制，依然可以帮助读者。真正需要处理的是空 frontmatter、只有一句待办、只贴一段命令却不解释上下文，或者标题承诺了完整主题、正文却没有完成的页面。</p>
+        <p>这次博客共有 71 篇 Markdown。整文件不足 600 字符的有 11 篇，其中最短页面只有标题和日期，另一些正文不足一段。字符数只是发现候选项的闸门，不是通用质量标准；最终仍要打开候选文章，确认它是否能独立回答问题。</p>
+
+        <h2>为什么不直接删除</h2>
+        <p>历史文章可能被旧书签、聊天记录或其他页面引用。删除后返回 404，会让仍需要这些碎片信息的访问者失去路径，也丢掉站内标签和时间线的连续性。为每篇短文强行扩写同样不诚实：如果没有新的实践证据，增加泛化段落只会制造更多看似完整的低价值内容。</p>
+        <p>保留 URL 能维护历史；退出索引则明确告诉搜索引擎，这些页面不应作为搜索落地页。两者并不冲突。</p>
+
+        <h2><code>noindex, follow</code> 的具体语义</h2>
+        <p>目标文章在 frontmatter 中增加 <code>indexing: false</code>。主题根据这个字段输出 <code>&lt;meta name="robots" content="noindex, follow"&gt;</code>。<code>noindex</code> 请求搜索引擎不要把当前页保留在结果中；<code>follow</code> 允许抓取器继续发现页面上的站内链接。</p>
+        <p>页面仍返回 200，站内归档也可访问。它不是通过 robots.txt 阻止抓取，因为抓取器需要看到 meta 标签才能执行 noindex。把页面同时 Disallow 会让指令彼此妨碍。</p>
+
+        <h2>sitemap 只保留希望被索引的地址</h2>
+        <p>原 sitemap 生成器把所有 posts 和 pages 无条件加入列表。本轮修改后，带有 <code>indexing: false</code> 的文档会在生成阶段被过滤。这样 sitemap 的含义保持清晰：它列出站点主动推荐抓取和索引的规范页面，而不是所有仍能访问的历史 URL。</p>
+        <p>页面 meta 与 sitemap 必须同时验证。只从 sitemap 删除但不加 noindex，搜索引擎仍可能通过归档页发现并索引；只加 noindex 但继续写入 sitemap，则持续发出“请抓取”和“不要索引”的混合信号。</p>
+
+        <h2>广告也不该加载在退出索引的薄页</h2>
+        <p>AdSense loader 由主题全局注入时，空页也可能出现自动广告，形成广告比正文更突出的体验。主题因此把同一个 <code>indexing: false</code> 作为广告边界：这类页面不再加载自动广告脚本。内容页恢复为有价值、可索引后，移除字段即可同时恢复索引与广告资格。</p>
+        <p>这种联动不是说所有 noindex 页面都永远不能放广告，而是针对当前博客的保守策略。联系页、预览页或内部工具有各自的用途，不能把一条规则机械套到所有网站。</p>
+
+        <h2>如何判断何时可以重新进入索引</h2>
+        <p>整改一篇文章时至少补齐：问题发生的环境、可复现现象、实际采用的方法、验证结果和已知限制。如果内容来自旧版本，还要明确时间范围，避免读者把过时命令当成当前建议。完成后由人工复读，再移除 <code>indexing: false</code>。</p>
+        <p>网站质量治理不是一次大扫除。新文章发布前应阻止空模板进入生产；旧文章则按真实价值分批补写、合并或退出索引。目标不是让 sitemap 数字更好看，而是让每一个被推荐给搜索用户的 URL 都能兑现标题。</p>
+        <p>本轮还会在构建后反向验证数量：目标十一页都必须出现 robots 指令、都不能加载广告、也不能出现在 sitemap；未标记的文章则保持正常索引。规则只有能被自动检查，才不会在下一次主题更新时悄悄失效。</p>
+        <footer class="article-footer"><p>本文记录 blog.concitech.org 本轮对十一篇空页和极短记录的实际治理规则。</p><p><a href="/notes/github-actions-deploy-key">回到本轮第一篇：跨仓库部署的最小权限修复 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

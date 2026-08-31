@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>跨仓库部署失败后，我如何改用 Deploy Key — Concitech</title>
+    <meta name="description" content="一次真实的 GitHub Actions 跨仓库部署故障复盘：如何从无效令牌定位到权限边界，并用单仓库 Deploy Key 恢复发布。" />
+    <meta name="author" content="JimLiu" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/github-actions-deploy-key" />
+    <link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+      (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", "y59kdxo6uz");
+    </script>
+    <script type="application/ld+json">
+      {"@context":"https://schema.org","@type":"Article","headline":"跨仓库部署失败后，我如何改用 Deploy Key","description":"一次真实的 GitHub Actions 跨仓库部署故障与最小权限修复复盘。","datePublished":"2026-08-31","dateModified":"2026-08-31","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/github-actions-deploy-key","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}
+    </script>
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a><nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav></header>
+    <main class="content-shell">
+      <a class="breadcrumb" href="/notes">← 返回开发笔记</a>
+      <header class="article-header">
+        <p class="eyebrow"><span class="dot"></span>deployment postmortem</p>
+        <h1>跨仓库部署失败后，我如何改用 Deploy Key</h1>
+        <p class="page-intro">博客源码在一个仓库，生成后的站点在另一个仓库。构建一直成功，发布却突然报“Invalid username or token”。真正的问题不是 Hexo，而是跨仓库写权限已经失效。</p>
+        <p class="article-meta">JimLiu · <time datetime="2026-08-31">2026 年 8 月 31 日</time> · 约 7 分钟</p>
+      </header>
+      <article class="prose article-body">
+        <h2>先把失败范围缩到最后一步</h2>
+        <p>这次 GitHub Actions 运行中，Checkout、Node 环境、依赖安装和静态构建全部通过，只有 <code>peaceiris/actions-gh-pages</code> 的推送失败。日志明确显示它正在向 <code>JimLiuxinghai.github.io</code> 的 <code>master</code> 分支执行 <code>git push</code>，随后远端返回用户名或令牌无效。这个证据很重要：如果构建产物已经生成，就不应该继续修改主题、Node 版本或 Hexo 配置。</p>
+        <p>原工作流把个人访问令牌保存为 <code>PAGES_TOKEN</code>。这类令牌可能过期、被撤销，也可能因为权限模型变化失去目标仓库写权限。重新生成一个覆盖多个仓库的个人令牌当然能恢复，但它同时扩大了泄露后的影响范围。</p>
+
+        <h2>为什么选择单仓库 Deploy Key</h2>
+        <p>部署任务只需要完成一件事：从博客构建仓库向站点仓库写入生成文件。Deploy Key 把一对 SSH 密钥直接绑定到一个目标仓库，公钥只获得该仓库的写权限；私钥作为源仓库的 Actions Secret 保存。即使这把密钥泄露，它也不能读取或修改账号下的其他私有仓库。</p>
+        <p>我为目标仓库创建独立的 Ed25519 密钥，把公钥命名为 <code>blogbackup GitHub Actions deploy key</code> 并开启写权限；私钥写入源仓库的 <code>PAGES_DEPLOY_KEY</code>。工作流只把配置从 <code>personal_token</code> 改成 <code>deploy_key</code>，目标仓库、发布分支和产物目录保持不变。改动越小，越容易判断恢复是否来自权限修复。</p>
+
+        <h2>工作流本身仍采用最小权限</h2>
+        <p>源仓库工作流保留 <code>permissions: contents: read</code>。它只需要读取源码；向另一个仓库写入时使用专用 SSH 密钥，不需要给自动生成的 GitHub Token 额外权限。部署步骤仍固定外部仓库、<code>master</code> 分支和 <code>blog/public</code> 目录，避免模糊变量把内容推向错误位置。</p>
+        <p>密钥生成后，我先通过 API读取目标仓库已有 Deploy Key 和源仓库已有 Secret 的名称，确认不会创建重复项。写入后只查看 Secret 的元数据，不读取私钥内容。临时目录中的私钥在部署验证完成后立即删除，长期副本只留在 GitHub 加密 Secret 中。</p>
+
+        <h2>验证不能停在“推送成功”</h2>
+        <p>新工作流触发后用时 36 秒，构建和部署步骤全部成功。随后我检查了三个独立信号：目标仓库最新提交是否引用本次源提交；线上 <code>/ads.txt</code> 是否包含正确发布商记录；首页是否恰好加载一次 AdSense 脚本。只有这三项同时成立，才能证明权限、产物和线上内容形成了完整链路。</p>
+        <p>如果只看绿色 CI，仍可能把空目录、旧产物或错误分支推送成功。部署的完成条件应该写成用户可观察的结果，而不是某个命令的退出码。</p>
+
+        <h2>这套方案的边界</h2>
+        <p>Deploy Key 适合单一来源向单一目标仓库发布。多个来源仓库不能复用同一把 Deploy Key；如果项目需要组织级权限、审计、短期凭据或更复杂的仓库矩阵，GitHub App 会更合适。密钥也不会自动轮换，因此仍应记录用途，并在工作流停用时从目标仓库和源 Secret 两端一起撤销。</p>
+        <p>这次故障最后只改了一行工作流配置，但可靠修复依赖完整的判断顺序：先读失败步骤，再收窄权限，再验证线上结果。它比“重新塞一个更大的 Token”多花几分钟，却把后续风险控制在了一个仓库里。</p>
+
+        <footer class="article-footer"><p>实现依据来自本站博客的实际 GitHub Actions 工作流与 2026-08-11 部署故障记录。</p><p><a href="/notes/legacy-hexo-static-generation">下一篇：旧版 Hexo 为什么生成了 0 字节文件 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>开发笔记 — Concitech 的真实实现与工程取舍</title>
-    <meta name="description" content="Concitech 原创开发笔记：基于真实项目代码，记录 AI 内容发布、浏览器扩展、静态站可靠性中的设计取舍、验证方法与限制。" />
+    <meta name="description" content="Concitech 原创开发笔记：基于真实项目代码和故障记录，复盘内容发布、浏览器扩展、媒体解析、静态站与部署中的工程取舍。" />
     <meta name="author" content="JimLiu" />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://concitech.org/notes" />
@@ -31,12 +31,42 @@
       <section aria-labelledby="page-title">
         <p class="eyebrow"><span class="dot"></span>original field notes</p>
         <h1 id="page-title">把开发过程写到可以复查。</h1>
-        <p class="page-intro">这里记录 Concitech 项目里已经发生过的具体问题：为什么要设置发布闸门、浏览器能力失效时如何降级，以及一个静态站怎样避免“看起来能打开、实际上难以收录”。每篇都附上实现依据，也会写清楚目前没有解决的部分。</p>
+        <p class="page-intro">这里记录 Concitech 项目里已经发生过的具体问题：发布凭据为什么失效、旧框架怎样产生空文件、媒体结构如何解析，以及第三方页面能力失效时如何降级。每篇都附上实现依据，也会写清楚尚未解决的部分。</p>
       </section>
 
       <section class="section-block" aria-labelledby="latest-title">
-        <div class="section-heading"><p class="eyebrow"><span class="dot"></span>latest notes</p><h2 id="latest-title">首批实践记录</h2></div>
+        <div class="section-heading"><p class="eyebrow"><span class="dot"></span>field notes</p><h2 id="latest-title">八篇可复查的实践记录</h2></div>
         <div class="article-grid">
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-31">2026-08-31</time> · 部署复盘</p>
+            <h3>跨仓库部署失败后，我如何改用 Deploy Key</h3>
+            <p>从无效 Token 的失败日志出发，把跨仓库发布收窄为一把只对目标仓库有写权限的密钥，并验证线上结果。</p>
+            <a href="/notes/github-actions-deploy-key">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-31">2026-08-31</time> · 旧系统维护</p>
+            <h3>旧版 Hexo 显示成功，文件为什么全是空的</h3>
+            <p>日志列出数百个 Generated 文件，目标目录却全是 0 字节。问题最终落在 route stream 的写盘兼容层。</p>
+            <a href="/notes/legacy-hexo-static-generation">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-31">2026-08-31</time> · 媒体解析</p>
+            <h3>X 媒体解析为什么不能只取第一个视频地址</h3>
+            <p>普通附件、卡片视频、多码率、长文和线程来自不同分支，解析层必须把它们压缩成稳定模型。</p>
+            <a href="/notes/x-media-parser-boundaries">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-31">2026-08-31</time> · 浏览器扩展</p>
+            <h3>浏览器截图为什么要主动排除脚本节点</h3>
+            <p>第三方页面的脚本、模板和扩展按钮会触发 CSP 或污染画面，共享过滤器负责划清截图边界。</p>
+            <a href="/notes/browser-screenshot-csp">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
+          <article class="article-card">
+            <p class="article-meta"><time datetime="2026-08-31">2026-08-31</time> · 内容维护</p>
+            <h3>旧文章为什么保留 URL，但退出搜索索引</h3>
+            <p>空页和极短记录不必制造 404；用 noindex、follow 与 sitemap 过滤保留历史路径，同时清理薄内容信号。</p>
+            <a href="/notes/thin-content-indexing">阅读全文 <span aria-hidden="true">→</span></a>
+          </article>
           <article class="article-card">
             <p class="article-meta"><time datetime="2026-08-19">2026-08-19</time> · 内容系统</p>
             <h3>我如何让 AI 日报保持可核验</h3>

@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://concitech.org/</loc><lastmod>2026-08-19</lastmod></url>
-  <url><loc>https://concitech.org/notes</loc><lastmod>2026-08-19</lastmod></url>
+  <url><loc>https://concitech.org/</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes/github-actions-deploy-key</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes/legacy-hexo-static-generation</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes/x-media-parser-boundaries</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes/browser-screenshot-csp</loc><lastmod>2026-08-31</lastmod></url>
+  <url><loc>https://concitech.org/notes/thin-content-indexing</loc><lastmod>2026-08-31</lastmod></url>
   <url><loc>https://concitech.org/notes/verifiable-ai-daily</loc><lastmod>2026-08-19</lastmod></url>
   <url><loc>https://concitech.org/notes/clipboard-fallbacks</loc><lastmod>2026-08-19</lastmod></url>
   <url><loc>https://concitech.org/notes/static-site-quality-checks</loc><lastmod>2026-08-19</lastmod></url>

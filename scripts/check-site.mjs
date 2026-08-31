@@ -4,7 +4,12 @@ import { resolve } from 'node:path';
 const root = resolve(import.meta.dirname, '..');
 const pages = [
   { file: 'index.html', route: '/', minimumText: 900, ads: true },
-  { file: 'notes.html', route: '/notes', minimumText: 480, ads: true },
+  { file: 'notes.html', route: '/notes', minimumText: 1200, ads: true },
+  { file: 'notes/github-actions-deploy-key.html', route: '/notes/github-actions-deploy-key', minimumText: 1800, ads: true, article: true },
+  { file: 'notes/legacy-hexo-static-generation.html', route: '/notes/legacy-hexo-static-generation', minimumText: 1800, ads: true, article: true },
+  { file: 'notes/x-media-parser-boundaries.html', route: '/notes/x-media-parser-boundaries', minimumText: 1800, ads: true, article: true },
+  { file: 'notes/browser-screenshot-csp.html', route: '/notes/browser-screenshot-csp', minimumText: 1800, ads: true, article: true },
+  { file: 'notes/thin-content-indexing.html', route: '/notes/thin-content-indexing', minimumText: 1800, ads: true, article: true },
   { file: 'notes/verifiable-ai-daily.html', route: '/notes/verifiable-ai-daily', minimumText: 1400, ads: true, article: true },
   { file: 'notes/clipboard-fallbacks.html', route: '/notes/clipboard-fallbacks', minimumText: 1400, ads: true, article: true },
   { file: 'notes/static-site-quality-checks.html', route: '/notes/static-site-quality-checks', minimumText: 1400, ads: true, article: true },

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>旧版 Hexo 显示生成成功，文件为什么全是空的 — Concitech</title>
+    <meta name="description" content="复盘 Hexo 3 在现代 Node 环境中的静态输出问题：路由已渲染但目标文件为 0 字节，以及如何逐个消费 route stream。" />
+    <meta name="author" content="JimLiu" /><meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://concitech.org/notes/legacy-hexo-static-generation" /><link rel="icon" href="/icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Manrope:wght@300;400;500;600&display=swap" rel="stylesheet" /><link rel="stylesheet" href="/styles.css" />
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5950061234063954" crossorigin="anonymous"></script>
+    <script type="text/javascript">(function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window,document,"clarity","script","y59kdxo6uz");</script>
+    <script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"旧版 Hexo 显示生成成功，文件为什么全是空的","description":"Hexo 3 路由渲染成功但静态文件为空的排查与兼容输出方案。","datePublished":"2026-08-31","dateModified":"2026-08-31","inLanguage":"zh-Hans","mainEntityOfPage":"https://concitech.org/notes/legacy-hexo-static-generation","author":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/about"},"publisher":{"@type":"Person","name":"JimLiu","url":"https://concitech.org/"}}</script>
+  </head>
+  <body>
+    <header class="site-header"><a class="brand" href="/" aria-label="Concitech 首页">concitech<span>.</span></a><nav class="site-nav" aria-label="主导航"><a href="/">首页</a><a aria-current="page" href="/notes">笔记</a><a href="/projects">项目</a><a href="/about">关于</a><a href="/contact">联系</a></nav></header>
+    <main class="content-shell"><a class="breadcrumb" href="/notes">← 返回开发笔记</a><header class="article-header"><p class="eyebrow"><span class="dot"></span>legacy build debugging</p><h1>旧版 Hexo 显示生成成功，文件为什么全是空的</h1><p class="page-intro">命令行列出了 203 个 Generated 文件，也没有返回错误，但 <code>public/index.html</code>、图片和脚本全是 0 字节。这是比构建失败更危险的状态：日志看起来正常，产物却完全不可用。</p><p class="article-meta">JimLiu · <time datetime="2026-08-31">2026 年 8 月 31 日</time> · 约 7 分钟</p></header>
+      <article class="prose article-body">
+        <h2>先相信文件系统，而不是成功日志</h2>
+        <p>博客仍使用 Hexo 3.9 和较老的渲染器。运行 <code>hexo clean &amp;&amp; hexo generate</code> 时，控制台逐条打印首页、归档、标签和文章已生成，最后也报告数百个文件完成。但 <code>wc -c</code> 显示抽样文件全部为 0；继续统计后发现整个 <code>public</code> 目录没有一个非空文件。</p>
+        <p>这一步把问题从“AdSense 脚本没有渲染”改写成“Hexo 写盘层没有消费内容”。如果只搜索生成 HTML 中的脚本，会得到 0 个匹配，很容易误判主题配置没有生效。</p>
+
+        <h2>路由中其实已经有完整内容</h2>
+        <p>Hexo 的生成过程先把页面、静态资源注册到路由表，再由生成器把每条路由写入公开目录。旧版本的 <code>hexo.route.get(routePath)</code> 返回可读流；在当前 Node 环境里，默认写盘流程创建了目标文件，却没有把流中的数据正确落盘。主题配置和 EJS 渲染本身是正常的。</p>
+        <p>我用 Hexo API执行 <code>init</code> 和 <code>load</code>，读取路由列表，然后针对单条路由监听 <code>data</code>、<code>error</code> 和 <code>end</code>。收到的 chunk 合并后包含正常 HTML，证明内容没有在模板阶段消失。</p>
+
+        <h2>兼容生成器做了什么</h2>
+        <p><code>tools/generate-static.js</code> 不修改文章或主题。它只负责四步：初始化 Hexo、清空并重建公开目录、遍历 <code>hexo.route.list()</code>、把每个 route stream 完整收集成 Buffer 后写入对应路径。写文件前先创建父目录，全部完成后补上 GitHub Pages 使用的 <code>.nojekyll</code>。</p>
+        <p>顺序消费路由而不是一次并发数百条，是刻意的保守选择。这个博客体量不大，几秒构建时间可以接受；顺序执行让错误能准确落到某个 routePath，也避免旧插件共享状态时出现难以复现的竞争。</p>
+
+        <h2>为什么没有直接升级整个 Hexo</h2>
+        <p>升级框架最终更健康，但老博客同时依赖旧主题、EJS、Stylus 和多个生成器。一次跨越多个主版本的升级会把“静态文件为空”和“模板兼容”混成同一批变量。当前目标是先恢复可验证发布，因此用薄兼容层隔离写盘问题，并把升级留给单独迁移。</p>
+        <p>兼容脚本也不是永久答案：它依赖 Hexo 3 的内部路由接口，未来升级后应删除，而不是继续维护两套输出路径。代码里保持单一入口，CI 只运行这个脚本，可以避免开发者误用旧命令。</p>
+
+        <h2>验证从数量升级到内容</h2>
+        <p>修复后，171 个 HTML 页面全部包含且只包含一次 AdSense loader，<code>ads.txt</code> 内容与发布商 ID 一致。构建还要抽查 CSS、JavaScript 和图片的字节数，防止只修复 HTML。部署完成后再从公网请求首页和 <code>ads.txt</code>，确认 CDN 返回的不是旧缓存。</p>
+        <p>这个故障留下的原则很简单：生成器说“完成”只代表流程走到末尾，不能代表产物正确。对于静态站，最便宜的质量闸门就是检查文件非空、关键字符串出现次数和线上 HTTP 响应。三类断言加起来，比一行绿色日志可信。</p>
+
+        <h2>把诊断写进后续维护流程</h2>
+        <p>兼容脚本恢复后，我没有把最初的空文件当成一次偶发环境故障。CI 的 Build 步骤固定调用新入口，并在部署前完成内容检查；本地排障也先抽查产物字节数，再搜索关键 HTML。这样以后更换 Node 或依赖时，同类退化会停在发布之前。</p>
+        <p>如果未来升级 Hexo，迁移验收也有了明确对照：两套生成方式针对同一提交输出相同路由，关键页面的 canonical、正文和资源引用一致，新生成器通过后才删除兼容层。恢复、观察和退出方案同时存在，临时修复才不会变成无人敢动的永久黑盒。</p>
+
+        <footer class="article-footer"><p>示例来自 blog.concitech.org 当前使用的 Hexo 3 兼容生成脚本。</p><p><a href="/notes/x-media-parser-boundaries">下一篇：X 媒体解析为什么不能只取第一个视频地址 →</a></p></footer>
+      </article>
+    </main>
+    <footer class="site-footer"><p>© 2026 Concitech · Independent work by JimLiu.</p><nav aria-label="页脚导航"><a href="/notes">Notes</a><a href="/about">About</a><a href="/privacy">Privacy</a><a href="/editorial-policy">Editorial policy</a></nav></footer>
+  </body>
+</html>
